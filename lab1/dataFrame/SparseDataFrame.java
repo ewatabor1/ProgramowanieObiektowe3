@@ -85,19 +85,18 @@ public class SparseDataFrame {
     public DataFrame toDense () {
         String[] types = getColumnsTypeNames();
         String[] names = getColumnsNames();
-        DataFrame result = new DataFrame(names,types);
+        DataFrame result = new DataFrame();
         Object[] lista= new Object[sparseDF.size()];
-        int i=0,a=0;
-        for (; i<sparseDF.size(); i++){
-            for (SparseColumn b: sparseDF){
-                lista[i]=b.elementAtIndex(i);
-                sparseDF.get(a).addElement(b.elementAtIndex(i));
-                a++;
+
+        for (SparseColumn a : sparseDF) {
+            Column column = new Column(a.getName(), a.getType());
+            for (int i = 0; i < a.size(); i++) {
+                column.addElement(a.elementAtIndex(i));
             }
-            a=0;
-            }
-        return result;
+            result.dataF.add(column);
         }
+        return result;
+    }
 
     //@Override
     public SparseDataFrame get(String[] cols, boolean copy) {

@@ -4,18 +4,23 @@ import java.util.*;
 import java.lang.reflect.*;
 
 public class Column {
-    private ArrayList kolumna;
-    private String name;
-    private String type;
-    private List<Object> lista;
+    protected String name;
+    protected String type;
+    protected List<Object> lista;
 
     public Column(String _name, String _type){
         name=_name;
         type=fix(_type);
         lista = new ArrayList<>();
     }
+    public Column(Column column){
+        this.name = column.name;
+        this.type = column.type;
+        this.lista = new ArrayList<>(column.lista);
+    }
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "Nazwa kolumny: " + name + ", Typ: " + type + "\n Zawartość: " + lista;
     }
     public String fix (String type){
@@ -38,9 +43,7 @@ public class Column {
             lista.add(element);
         }
     }
-    public Object atIndex(int a){
-        return lista.get(a);
-    }
+
     public int size (){
         return lista.size();
     }

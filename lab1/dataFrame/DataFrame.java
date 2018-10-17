@@ -41,9 +41,19 @@ public class DataFrame {
         }
         return null;
     }
+    public Object[] getRowData(int n){
+        if(n >= size())
+            throw new IllegalArgumentException("Index of wanted row bigger than current size of the column.");
+        Object[] result = new Object[width()];
+        for(int i = 0; i < width(); i++){
+            result[i] = dataF.get(i).elementAtIndex(n);
+        }
+        return result;
+    }
     public int size(){
         return dataF.get(0).size();
     }
+    public int width(){ return dataF.size();}
     @Override
     public String toString() {
         StringBuilder out = new StringBuilder();
@@ -64,6 +74,20 @@ public class DataFrame {
                     break;
                 }
             }
+        }
+        return result;
+    }
+    public String[] getColumnsNames(){
+        String[] result = new String[width()];
+        for(int i = 0; i < width(); i++){
+            result[i] = dataF.get(i).getName();
+        }
+        return result;
+    }
+    public String[] getColumnsTypes(){
+        String[] result = new String[width()];
+        for(int i = 0; i < width(); i++){
+            result[i] = dataF.get(i).getType();
         }
         return result;
     }
@@ -112,5 +136,6 @@ public class DataFrame {
         }
         return true;
     }
+
 
 }

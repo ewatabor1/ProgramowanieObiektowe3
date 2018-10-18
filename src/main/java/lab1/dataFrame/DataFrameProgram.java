@@ -14,16 +14,18 @@ public class DataFrameProgram {
         Object[] lala = {0,1,5};
         df.addRowS(lala);
         String[] types=new String[] {"double","double","double"};
-        df.realColumnSize();
-        System.out.println(df);
+        //df.realColumnSize();
+        //System.out.println(df);
         try {
-            SparseDataFrame df1 = new SparseDataFrame("sparse.csv",types,"0.0",true);
-            System.out.println(df1);
-            df1.realColumnSize();
+            //SparseDataFrame df1 = new SparseDataFrame("sparse.csv",types,"0.0",true);
+            //System.out.println(df1.iloc(0,20));
+            //df1.realColumnSize();
             DataFrame df2 = new DataFrame("data.csv",types,true);
-            System.out.println(df2);
-            SparseDataFrame df3= new SparseDataFrame("Lala.csv",types,"0.0",false);
-            System.out.println(df3);
+
+            System.out.println(df2.iloc(0,1));
+            //System.out.println(df2.iloc(0,20));
+            //SparseDataFrame df3= new SparseDataFrame("Lala.csv",types,"0.0",false);
+            //System.out.println(df3.iloc(0,5));
         }
         catch(IOException e) {
             e.printStackTrace();

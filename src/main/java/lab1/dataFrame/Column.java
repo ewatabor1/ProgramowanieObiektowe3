@@ -39,9 +39,9 @@ public class Column {
     }
 
     public void addElement (Object element){
-        if (isValid(element)){
+       // if (isValid(element)){
             lista.add(element);
-        }
+        //}
     }
     public void addElementChecked (Object element){
         lista.add(element);

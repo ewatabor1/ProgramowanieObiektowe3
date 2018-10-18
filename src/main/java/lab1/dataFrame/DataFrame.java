@@ -63,8 +63,9 @@ public class DataFrame {
             }
             dataF.add(new Column(names[i], types[i]));
         }
-        //while ((strLine = br.readLine()) != null){
-        for (int a=0; a<20;a++){
+        int a=0;
+        while ((strLine = br.readLine()) != null){
+        //for (int a=0; a<20;a++){
             if(a>0 || (a==0 && header)){
                 strLine=br.readLine();
                 if(strLine==null) break;
@@ -158,17 +159,16 @@ public class DataFrame {
         return result;
     }
 
-    public DataFrame iloc (int i){
-        DataFrame result = new DataFrame();
-        for (Column a: dataF){
-            Column column = new Column(a.getName(),a.getType());
-            if (i>=0 && this.size()>i){
-                column.addElement(a.elementAtIndex(i));
-            }
-            result.dataF.add(column);
-        }
-        return result;
+    public DataFrame iloc(int i) {
+        DataFrame output = new DataFrame(getColumnsNames(), getColumnsTypes());
 
+        int k = 0;
+        if(i >= 0 && i < size()) {
+            for (Column c: output.dataF) {
+                c.addElement(dataF.get(i).elementAtIndex(k++));
+            }
+        }
+        return output;
     }
 
     public DataFrame iloc(int from, int to){
@@ -177,7 +177,7 @@ public class DataFrame {
         if (to>=this.size()) to=this.size()-1;
         for (Column a: dataF){
             Column column = new Column(a.getName(),a.getType());
-            for (int i=from;i<=to;i++){
+            for (int i=from;i<to;i++){
                 column.addElement(a.elementAtIndex(i));
             }
             result.dataF.add(column);

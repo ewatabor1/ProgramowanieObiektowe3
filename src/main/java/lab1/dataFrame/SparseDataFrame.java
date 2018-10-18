@@ -77,7 +77,9 @@ public class SparseDataFrame {
             sparseDF.add(new SparseColumn(names[i], types[i],hidden));
         }
         //while ((strLine = br.readLine()) != null){
-        for (int a=0; a<20;a++){
+        //for (int a=0; a<20;a++){
+        int a=0;
+        while ((strLine = br.readLine()) != null){
             if(a>0 || (a==0 && header)){
                 strLine=br.readLine();
                 if(strLine==null) break;

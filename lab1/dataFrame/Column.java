@@ -43,6 +43,9 @@ public class Column {
             lista.add(element);
         }
     }
+    public void addElementChecked (Object element){
+        lista.add(element);
+    }
 
     public int size (){
         return lista.size();

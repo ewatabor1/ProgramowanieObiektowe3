@@ -1,5 +1,6 @@
 package main.java.lab1.dataFrame;
 
+
 import java.util.*;
 
 public class SparseDataFrame {
@@ -82,6 +83,21 @@ public class SparseDataFrame {
         return result;
     }
 
+    //@Override
+    public SparseDataFrame get(String[] cols, boolean copy) {
+        SparseDataFrame result = new SparseDataFrame();
+
+        for (String s: cols) {
+            for (SparseColumn c: sparseDF) {
+                if(s.equals(c.getName())) {
+                    if (copy) result.sparseDF.add(c.clone());
+                    else result.sparseDF.add(c);
+                    break;
+                }
+            }
+        }
+        return result;
+    }
     public DataFrame toDense () {
         String[] types = getColumnsTypeNames();
         String[] names = getColumnsNames();
@@ -98,18 +114,42 @@ public class SparseDataFrame {
         return result;
     }
 
-    //@Override
-    public SparseDataFrame get(String[] cols, boolean copy) {
-        SparseDataFrame result = new SparseDataFrame();
 
-        for (String s: cols) {
-            for (SparseColumn c: sparseDF) {
-                if(s.equals(c.getName())) {
-                    if (copy) result.sparseDF.add(c.clone());
-                    else result.sparseDF.add(c);
-                    break;
+    //@Override
+    public SparseDataFrame iloc (int i){
+        SparseDataFrame result = new SparseDataFrame();
+        for (SparseColumn a: sparseDF){
+            SparseColumn column = new SparseColumn(a.getName(),a.getType(),a.getHidden());
+            if (i>=0 && a.size()>i){
+                if (a.elementAtIndex(i)!=a.getHidden()) {
+                    column.addElement(a.elementAtIndex(i));
+                }
+
+                else {
+                    column.increaseSize();
                 }
             }
+            result.sparseDF.add(column);
+        }
+        return result;
+
+    }
+    public SparseDataFrame iloc(int from, int to){
+        SparseDataFrame result = new SparseDataFrame();
+        if (from<0) from=0;
+        if(sparseDF.size()>0) {
+            if (to > sparseDF.get(0).size()) to = sparseDF.get(0).size();
+        }
+
+        for (SparseColumn a: sparseDF){
+            SparseColumn column = new SparseColumn(a.getName(), a.getType(),a.getHidden());
+            for (int i=from;i<to;i++){
+                if (a.elementAtIndex(i)!=a.getHidden()) {
+                    column.addElement(a.elementAtIndex(i));
+                }
+                else column.increaseSize();
+            }
+            result.sparseDF.add(column);
         }
         return result;
     }

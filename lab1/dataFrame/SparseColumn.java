@@ -26,6 +26,10 @@ public class SparseColumn extends Column{
         this.hidden = hidden;
         this.size=column.size();
     }
+    public Object getHidden(){
+        return hidden;
+    }
+
     @Override
     public void addElement(Object o){
         if(o.toString().equals(hidden))
@@ -47,6 +51,9 @@ public class SparseColumn extends Column{
     @Override
     public int size(){
         return size;
+    }
+    public void increaseSize(){
+        size++;
     }
     @Override
     public String toString(){

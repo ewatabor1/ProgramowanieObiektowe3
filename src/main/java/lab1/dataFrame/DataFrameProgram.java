@@ -4,43 +4,35 @@ import java.io.IOException;
 
 public class DataFrameProgram {
     public static void main(String[] argv){
-        SparseDataFrame df = new SparseDataFrame(new String[] {"kol1", "kol2", "kol3"}, "int",0);
-        df.addRowS(1,2,0);
-        df.addRowS(0,0,0);
-        df.addRowS(1,5,2);
-        df.addRowS(0,0,7);
-        df.addRowS(1,34,0);
-        df.addRowS(0,1,0);
-        Object[] lala = {0,1,5};
-        df.addRowS(lala);
-        String[] types=new String[] {"double","double","double"};
-        //df.realColumnSize();
-        //System.out.println(df);
+        /*DataFrame dataFrame = new DataFrame(new String[]{"col1","col2"}, new Class[]{IntegerValue.class, IntegerValue.class});
+        dataFrame.addRow(new IntegerValue(1), new IntegerValue(2));
+        dataFrame.addRow(new IntegerValue(3), new IntegerValue(4));
+        dataFrame.addRow(new IntegerValue(12), new IntegerValue(212));
+        dataFrame.addRow(new IntegerValue(12), new IntegerValue(2123));
+        System.out.println(dataFrame);
+        System.out.println(dataFrame.iloc(1));
+        System.out.println(dataFrame.iloc(1,4));
+        System.out.println(dataFrame.get(new String[]{"col1","col2"}, true));
+/*
         try {
-            //SparseDataFrame df1 = new SparseDataFrame("sparse.csv",types,"0.0",true);
-            //System.out.println(df1.iloc(0,20));
-            //df1.realColumnSize();
-            DataFrame df2 = new DataFrame("data.csv",types,true);
-
-            System.out.println(df2.iloc(0,1));
-            //System.out.println(df2.iloc(0,20));
-            //SparseDataFrame df3= new SparseDataFrame("Lala.csv",types,"0.0",false);
-            //System.out.println(df3.iloc(0,5));
+            DataFrame dataFrame1 = new DataFrame("data.csv", new Class[]{DoubleValue.class, DoubleValue.class, DoubleValue.class},true);
+            System.out.println(dataFrame1.iloc(0,2));
         }
         catch(IOException e) {
             e.printStackTrace();
-        }
-
-        //SparseDataFrame df2 = df.getColums(new String[]{"kol1","kol2", "kol3"}, true);
-        //DataFrame df3 = df.get(new String[]{"kol1","kol3", "kol1"}, false);
-        //DataFrame df4 = new DataFrame("myData.csv", new String[]{"int","int","int","int"});
-        //System.out.println(df4);
-
-        //System.out.println(df1);
-        /*DataFrame df3 = df1.get(new String[]{"kol1","kol3", "kol1"}, false);
-        System.out.println(df3);
-
-        System.out.println(df.iloc(0));
-        System.out.println(df.iloc(2, 7));*/
+        }*/
+        SparseDataFrame sparseDataFrame = new SparseDataFrame(new String[]{"col1","col2"},
+                new Class[]{DoubleValue.class, DoubleValue.class}, new DoubleValue(0.0));
+        sparseDataFrame.addRow(new DoubleValue(2.5), new DoubleValue(2.2));
+        sparseDataFrame.addRow(new DoubleValue(0.0), new DoubleValue(0.0));
+        sparseDataFrame.addRow(new DoubleValue(2.5), new DoubleValue(0.0));
+        sparseDataFrame.addRow(new DoubleValue(2.215), new DoubleValue(212312.2));
+        sparseDataFrame.addRow(new DoubleValue(2.5), new DoubleValue(2.2123));
+        sparseDataFrame.addRow(new DoubleValue(-333.3), new DoubleValue(0.0));
+        //System.out.println(sparseDataFrame);
+        System.out.println(sparseDataFrame.iloc(2));
+        //System.out.println(sparseDataFrame.iloc(1,4));
+        System.out.println(sparseDataFrame.get(new String[]{"Kolumna","Kolumna2"}, true));
+        //System.out.println(new SparseDataFrame(dataFrame,new IntegerValue(12)));
     }
 }

@@ -2,6 +2,8 @@ package main.java.lab1.dataFrame;
 
 
 import main.java.lab1.groupBy.Operation;
+import main.java.lab1.myExceptions.DifferentSizedColumns;
+import main.java.lab1.myExceptions.WrongTypeInColumn;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -45,6 +47,14 @@ public class Column implements Cloneable{
         }
         return false;
     }
+    public void addElementWC (Value element){
+        lista.add(element);
+    }
+    public void switchElementWC (int index, Value element){
+        if (lista.size()>index && index>=0) {
+            lista.set(index, element);
+        }
+    }
     public boolean checkElement (Value element){
         if (type.isInstance(element)) return true;
         return false;
@@ -87,6 +97,10 @@ public class Column implements Cloneable{
      * Zwraca tekstową reprezentację kolumny
      * @return
      */
+    public void setElement(int index,Value o1){
+        if (type.isInstance(o1)) lista.set(index,o1);
+        else throw new IllegalArgumentException();
+    }
     @Override
     public String toString()
     {
@@ -105,7 +119,7 @@ public class Column implements Cloneable{
         column.lista = new ArrayList<>(lista);
         return column;
     }
-    public Value calculate(Operation operation) {
+    public Value calculate(Operation operation) throws WrongTypeInColumn{
         switch (operation) {
             case MAX:
                 return getMax();
@@ -123,13 +137,16 @@ public class Column implements Cloneable{
         }
         return new IntegerValue(0);
     }
-    public Value getMax() {
+
+    public Value getMax() throws WrongTypeInColumn{
         if(lista.isEmpty()) {
             return null;
         }
 
         Value max = lista.get(0);
+        int i=0;
         for (var value : lista) {
+            if (!type.isInstance(value)) throw new WrongTypeInColumn(getName(),i);
             if(value.gte(max)) {
                 max = value;
             }
@@ -196,5 +213,62 @@ public class Column implements Cloneable{
         throw new IllegalArgumentException("Bad Column type " + type);
     }
 
+    public void addValue (Value o1)throws WrongTypeInColumn,IllegalArgumentException{
+        for (int i = 0; i < size(); i++) {
+            if(!type.isInstance(lista.get(i))) throw new WrongTypeInColumn(name,i);
+            if(!type.isInstance(o1)) throw new IllegalArgumentException();
+            lista.set(i,lista.get(i).add(o1));
+        }
+    }
+    public void subValue (Value o1) throws WrongTypeInColumn,IllegalArgumentException{
+        for (int i = 0; i < size(); i++) {
+            if(!type.isInstance(lista.get(i))) throw new WrongTypeInColumn(name,i);
+            if(!type.isInstance(o1)) throw new IllegalArgumentException();
+            lista.set(i,lista.get(i).sub(o1));
+        }
+    }
+    public void divValue (Value o1) throws WrongTypeInColumn, IllegalArgumentException{
+        for (int i = 0; i < size(); i++) {
+            if(!type.isInstance(lista.get(i))) throw new WrongTypeInColumn(name,i);
+            if(!type.isInstance(o1)) throw new IllegalArgumentException();
+            lista.set(i,lista.get(i).div(o1));
+        }
+    }
+    public void mulByValue (Value o1) throws WrongTypeInColumn,IllegalArgumentException{
+        for (int i = 0; i < size(); i++) {
+            if(!type.isInstance(lista.get(i))) throw new WrongTypeInColumn(name,i);
+            if(!type.isInstance(o1)) throw new IllegalArgumentException();
+            lista.set(i,lista.get(i).mul(o1));
+        }
+    }
+    public void addValueC (Column o1) throws WrongTypeInColumn{
+        for (int i = 0; i < size(); i++) {
+            if(!type.isInstance(lista.get(i))) throw new WrongTypeInColumn(name,i);
+            if(!type.isInstance(o1.elementAtIndex(i))) throw new WrongTypeInColumn(o1.name,i);
+            lista.set(i,lista.get(i).add(o1.elementAtIndex(i)));
+        }
+    }
+    public void subValueC (Column o1) throws WrongTypeInColumn{
+        for (int i = 0; i < size(); i++) {
+            if(!type.isInstance(lista.get(i))) throw new WrongTypeInColumn(name,i);
+            if(!type.isInstance(o1.elementAtIndex(i))) throw new WrongTypeInColumn(o1.name,i);
+            lista.set(i,lista.get(i).sub(o1.elementAtIndex('i')));
+        }
+    }
+    public void divValueC (Column o1) throws WrongTypeInColumn{
+        for (int i = 0; i < size(); i++) {
+            if(!type.isInstance(lista.get(i))) throw new WrongTypeInColumn(name,i);
+            if(!type.isInstance(o1.elementAtIndex(i))) throw new WrongTypeInColumn(o1.name,i);
+            lista.set(i,lista.get(i).div(o1.elementAtIndex(i)));
+        }
+    }
+    public void mulByValueC (Column o1) throws DifferentSizedColumns, WrongTypeInColumn {
+        if(lista.size()!=o1.size()) throw new DifferentSizedColumns(getName(),o1.getName(),size(),o1.size());
 
+        for (int i = 0; i < size(); i++) {
+            if(!type.isInstance(lista.get(i))) throw new WrongTypeInColumn(name,i);
+            if(!type.isInstance(o1.elementAtIndex(i))) throw new WrongTypeInColumn(o1.name,i);
+            lista.set(i,lista.get(i).mul(o1.elementAtIndex(i)));
+        }
+    }
 }

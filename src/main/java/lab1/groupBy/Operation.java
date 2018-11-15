@@ -1,5 +1,5 @@
 package main.java.lab1.groupBy;
 
 public enum Operation {
-    MAX, MIN, MEAN, STD, SUM, VAR
+    MAX, MIN, MEAN, STD, SUM, VAR, ADD,SUB,MUL,DIV;
 }

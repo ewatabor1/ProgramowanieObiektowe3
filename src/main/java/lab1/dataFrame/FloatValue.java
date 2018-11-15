@@ -5,7 +5,7 @@ public class FloatValue extends Value {
     public FloatValue(){
         value=0;
     }
-    public FloatValue(Float value){
+    public FloatValue(float value){
         this.value=value;
     }
     public FloatValue(FloatValue o1){
@@ -18,6 +18,7 @@ public class FloatValue extends Value {
     public FloatValue(String string) {
         value = Float.valueOf(string);
     }
+
     @Override
     public FloatValue add(Value o1) {
         if (o1 instanceof FloatValue){

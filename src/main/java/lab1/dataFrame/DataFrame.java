@@ -3,6 +3,8 @@ package main.java.lab1.dataFrame;
 import main.java.lab1.groupBy.GroupBy;
 import main.java.lab1.groupBy.Applyable;
 import main.java.lab1.groupBy.Operation;
+import main.java.lab1.myExceptions.DifferentSizedColumns;
+import main.java.lab1.myExceptions.WrongTypeInColumn;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -13,6 +15,8 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static main.java.lab1.groupBy.Operation.*;
 
 public class DataFrame{
     protected List<Column> dataF;
@@ -52,6 +56,7 @@ public class DataFrame{
         }
     }
 
+
     /**
      Konstruktor tworzący DataFrame czytający dane z pliku csv
      * @param address -adres pliku csv
@@ -63,7 +68,7 @@ public class DataFrame{
      */
     public DataFrame(String address, Class<? extends Value>[] types, boolean header)
             throws IOException, NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException, InstantiationException {
+            InvocationTargetException, InstantiationException, WrongTypeInColumn {
 
         dataF = new ArrayList<>();
         FileInputStream fstream;
@@ -103,9 +108,9 @@ public class DataFrame{
             constructors.add(types[i].getConstructor(String.class));
         }
 
-        while ((strLine = br.readLine()) != null){
-        //for (int b=0; b<50;b++) {
-            //strLine = br.readLine();
+        //while ((strLine = br.readLine()) != null){
+        for (int b=0; b<50;b++) {
+            strLine = br.readLine();
             String[] str = strLine.split(",");
             for (int i = 0; i<str.length; i++){
                 values[i] = constructors.get(i).newInstance(str[i]);
@@ -159,6 +164,10 @@ public class DataFrame{
             i++;
         }
         return null;
+    }
+
+    public void switchColumn (int index,Column column){
+        dataF.set(index,column);
     }
 
     /**
@@ -242,12 +251,15 @@ public class DataFrame{
      * @param i - indeks wiersza, który nas interesuje
      * @return nowy DataFrame zawierający ten wiersz
      */
-    public DataFrame iloc(int i) {
+    public DataFrame iloc(int i) throws WrongTypeInColumn{
         DataFrame output = new DataFrame(getColumnsNames(), getColumnsTypes());
 
         int k = 0;
         if(i >= 0 && i < size()) {
             for (Column c: output.dataF) {
+                if(!c.checkElement(dataF.get(k).elementAtIndex(i))){
+                    throw new WrongTypeInColumn(c.getName(),i);
+                }
                 c.addElement(dataF.get(k++).elementAtIndex(i));
             }
         }
@@ -259,12 +271,17 @@ public class DataFrame{
      * @param to - indeks wiersza na którym kończymy
      * @return nowy DataFrame zawierający wybrane wiersze
      */
-    public DataFrame iloc(int from, int to){
+    public DataFrame iloc(int from, int to) throws WrongTypeInColumn{
         DataFrame result = new DataFrame();
         if (from<0) from=0;
         if (to>=this.size()) to=this.size()-1;
         for (Column a: dataF){
             Column column = new Column(a.getName(),a.getType());
+            for (int j=from;j<=to;j++){
+                if(!column.checkElement(a.elementAtIndex(j))){
+                    throw new WrongTypeInColumn(column.getName(),j);
+                }
+            }
             for (int i=from;i<=to;i++){
                 column.addElement(a.elementAtIndex(i));
             }
@@ -279,20 +296,32 @@ public class DataFrame{
      * @return zwraca false jeśli nie udało się dodać wiersza
      */
 
-    public boolean addRow(Value...values){
+    public boolean addRow(Value...values) throws WrongTypeInColumn {
         if(dataF.size()!=values.length){
             System.out.print("Nie podano wszystkich argumentów!");
             return false;
         }
-       /* for (int i=0;i<values.length;i++) {
-            if (!dataF.get(i)(values[i])) return false;
-        }*/
+        for (int i=0;i<values.length;i++){
+            if(!dataF.get(i).checkElement(values[i])) {
+                int a=dataF.get(0).size();
+                if(i==0){
+                    a=-1;
+                    if(a<0) a=0;
+                }
+                throw new WrongTypeInColumn(get(i).getName(),a);
+            }
+        }
         for (int j=0;j<values.length;j++){
             dataF.get(j).addElement(values[j]);
         }
         return true;
     }
-    private boolean addRow(List<Value> values) {
+    private boolean addRow(List<Value> values) throws WrongTypeInColumn{
+        for (int j=0;j<dataF.size();j++){
+            if(!dataF.get(j).checkElement(values.get(j))){
+                throw new WrongTypeInColumn(dataF.get(j).getName(),dataF.size());
+            }
+        }
         for (int i=0; i<dataF.size(); i++) {
             dataF.get(i).addElement(values.get(i));
         }
@@ -309,9 +338,8 @@ public class DataFrame{
             this.map = map;
             this.colNames = Arrays.asList(names);
         }
-        private DataFrame operation(Operation operation, boolean flag){
+        private DataFrame operation(Operation operation, boolean flag)throws WrongTypeInColumn{
             DataFrame dataFrame;
-
             if (flag) {
                 List<Class<? extends Value>> classList = new ArrayList<>(List.of(getColumnsTypes()));
                 ArrayList<String> nameList = new ArrayList<>(List.of(getColumnsNames()));
@@ -330,6 +358,7 @@ public class DataFrame{
                 dataFrame = new DataFrame(names,classes);
             }
             else dataFrame = new DataFrame(getColumnsNames(),getColumnsTypes());
+
             for (var values: map.keySet()) {
                 List<Value> toAdd = new ArrayList<>(values);
                 DataFrame df = map.get(values);
@@ -349,32 +378,32 @@ public class DataFrame{
         }
 
         @Override
-        public DataFrame max() {
+        public DataFrame max() throws WrongTypeInColumn {
             return operation(Operation.MAX, false);
         }
 
         @Override
-        public DataFrame min() {
+        public DataFrame min() throws WrongTypeInColumn {
             return operation(Operation.MIN,false);
         }
 
         @Override
-        public DataFrame mean() {
+        public DataFrame mean() throws WrongTypeInColumn {
             return operation(Operation.MEAN,true);
         }
 
         @Override
-        public DataFrame std() {
+        public DataFrame std()throws WrongTypeInColumn {
             return operation(Operation.STD,true);
         }
 
         @Override
-        public DataFrame sum() {
+        public DataFrame sum()throws WrongTypeInColumn {
             return operation(Operation.SUM,true);
         }
 
         @Override
-        public DataFrame var() {
+        public DataFrame var()throws WrongTypeInColumn {
             return operation(Operation.VAR,true);
         }
 
@@ -383,7 +412,7 @@ public class DataFrame{
             return applyable.apply(DataFrame.this);
         }
     }
-    public DataFrameGroupBy groupBy(String... colname) {
+    public DataFrameGroupBy groupBy(String... colname) throws WrongTypeInColumn{
         HashMap<List<Value>, DataFrame> map = new HashMap<>(colname.length);
         List<Column> dataF = Arrays.stream(colname).map(this::get).collect(Collectors.toList());
 

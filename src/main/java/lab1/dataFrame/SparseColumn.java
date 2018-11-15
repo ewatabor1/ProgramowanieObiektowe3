@@ -7,11 +7,11 @@ import java.util.List;
 
 public class SparseColumn extends Column{
     private int size;
-    private Object hidden;
+    private Value hidden;
     private List<CooValue> lista;
-    public SparseColumn(String name, String type, Object hidden){
+    public SparseColumn(String name, Class<? extends Value> type, Value hidden){
         super(name, type);
-        this.lista = new ArrayList<>();
+        lista = new ArrayList<>();
         this.hidden = hidden;
         size=0;
     }
@@ -21,17 +21,17 @@ public class SparseColumn extends Column{
         this.lista = new ArrayList<>(column.lista);
         this.hidden = column.hidden;
     }
-    public SparseColumn(Column column, String hidden){
+    public SparseColumn(Column column, Value hidden){
         super(column);
         this.hidden = hidden;
         this.size=column.size();
     }
-    public Object getHidden(){
+    public Value getHidden(){
         return hidden;
     }
 
     @Override
-    public void addElement(Object o){
+    public boolean addElement(Value o){
 
         if(o.equals(hidden)) {
             size++;
@@ -40,10 +40,11 @@ public class SparseColumn extends Column{
             lista.add(new CooValue(size, o));
             size++;
         }
+        return true;
     }
 
     @Override
-    public Object elementAtIndex (int index){
+    public Value elementAtIndex (int index){
         for(CooValue element : lista){
             if(element.getIndex() == index)
                 return element.getValue();
@@ -75,7 +76,7 @@ public class SparseColumn extends Column{
                 result.append(", ");
         }
         result.append(']');
-        return String.format("%s (%s) [%s]: ", name, fix(type), hidden) + result.toString();
+        return String.format("Nazwa kolumny: "+name+", Typ: "+type+", Hidden: "+ hidden) +"\n"+" Zawartośc: "+ result.toString();
     }
     public int realSize(){
 
@@ -83,28 +84,9 @@ public class SparseColumn extends Column{
     }
     @Override
     public SparseColumn clone() {
-        SparseColumn column = new SparseColumn(name, type,hidden);
-        Method method = null;
-
-        if(lista.isEmpty()) return column;
-        else {
-            try {
-                method = lista.get(0).getClass().getMethod("clone");
-            }
-            catch (NoSuchMethodException e) {
-                System.out.println("Klasa: " + type + " nie ma zadeklarowanej metody clone");
-            }
-        }
-
-        for (Object a: lista) {
-            try {
-                if (method==null) column.addElement(a);
-                else column.addElement(method.invoke(a));
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        }
-        return column;
+        SparseColumn sparseColumn = new SparseColumn(getName(), getType(), getHidden());
+        sparseColumn.lista = new ArrayList<>(lista);
+        return sparseColumn;
     }
 }
 

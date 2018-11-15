@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.DataTruncation;
 import java.util.*;
 
 public class SparseDataFrame {
@@ -13,22 +14,16 @@ public class SparseDataFrame {
         this.sparseDF = new ArrayList<>();
     }
 
-    public SparseDataFrame(String[] columnNames, String typeName, Object hidden){
-        sparseDF = new ArrayList<>(columnNames.length);
-        for(String columnName : columnNames){
-            sparseDF.add(new SparseColumn(columnName, typeName, hidden));
+    public SparseDataFrame(String[] names,  Class<? extends Value>[] types, Value hidden){
+        sparseDF = new ArrayList<>(names.length);
+        for(String columnName : names){
+            sparseDF.add(new SparseColumn(columnName, types[0], hidden));
         }
     }
 
-    public SparseDataFrame (DataFrame dataFrame, String hidden){
+    public SparseDataFrame (DataFrame dataFrame, Value hidden){
         if(dataFrame.width() > 0){
-            String[] types = dataFrame.getColumnsTypes();
-            String type = types[0];
-            for(String s : types)
-                if(!s.equals(type))
-                    throw new UnsupportedOperationException("Can't convert a DataFrame with different typeNames in it.");
-
-
+            Class<? extends Value> type = dataFrame.get(0).getType();
             sparseDF = new ArrayList<>();
             String[] names = dataFrame.getColumnsNames();
             for(String name : names){
@@ -37,10 +32,10 @@ public class SparseDataFrame {
 
 
             for(int i = 0; i < dataFrame.size(); i++)
-                addRowS(dataFrame.getRowData(i));
+                addRow(dataFrame.getRowData(i));
         }
     }
-    public SparseDataFrame(String address, String[] types, Object hidden, boolean header) throws IOException {
+    public SparseDataFrame(String address, Class<? extends Value>[] types, Value hidden, boolean header) throws IOException {
 
         sparseDF = new ArrayList<>();
         FileInputStream fstream;
@@ -76,8 +71,7 @@ public class SparseDataFrame {
             }
             sparseDF.add(new SparseColumn(names[i], types[i],hidden));
         }
-        //while ((strLine = br.readLine()) != null){
-        //for (int a=0; a<20;a++){
+        Value[] values=new Value[sparseDF.size()];
         int a=0;
         while ((strLine = br.readLine()) != null){
             if(a>0 || (a==0 && header)){
@@ -85,40 +79,29 @@ public class SparseDataFrame {
                 if(strLine==null) break;
                 separated=strLine.split(",");
             }
-
+            for (int i = 0; i < separated.length; i++) {
+                DoubleValue value1 = new DoubleValue();
+                values[i] = value1.create(separated[i]);
+            }
             if(sparseDF.size()!=separated.length){
                 System.out.print("Nie podano wszystkich argumentów!");
                 continue;
             }
-            /*for (int i=0;i<separated.length;i++) {
-                if (!dataF.get(i).isValid(separated[i])) {
-                    System.out.println(separated.getClass().toString());
-                    continue;
-                }
-            }*/
+
             for (int i=0;i<separated.length;i++){
-                //Konwersja typów?
-                sparseDF.get(i).addElement(separated[i]);
+                sparseDF.get(i).addElement(values[i]);
             }
         }
         br.close();
-
-
     }
 
-    public boolean addRowS(Object...objects){
-        if(objects.length != this.width()) {
+    public boolean addRow(Value...values){
+        if(values.length != this.width()) {
             System.out.println("Nie podano wszystkich argumentów");
             return false;
         }
-        for (int i=0;i<objects.length;i++) {
-            if (!sparseDF.get(i).isValid(objects[i])) {
-                return false;
-            }
-        }
-
-        for(int i = 0; i < objects.length; i++){
-            sparseDF.get(i).addElement(objects[i]);
+        for(int i = 0; i < values.length; i++){
+            sparseDF.get(i).addElement(values[i]);
         }
         return true;
     }
@@ -149,31 +132,47 @@ public class SparseDataFrame {
         }
         return result;
     }
-    public String[] getColumnsTypeNames(){
-        String[] result = new String[width()];
-        for(int i = 0; i < width(); i++){
-            result[i] = sparseDF.get(i).getType();
+    public Class<? extends Value>[] getColumnsTypeNames(){
+        Class[] classes = new Class[sparseDF.size()];
+        for (int i = 0; i < classes.length ; i++) {
+            classes[i] = sparseDF.get(i).getType();
         }
-        return result;
+        return classes;
     }
 
     //@Override
-    public SparseDataFrame get(String[] cols, boolean copy) {
+    public SparseDataFrame get(String[] colNames, boolean copy){
         SparseDataFrame result = new SparseDataFrame();
-
-        for (String s: cols) {
-            for (SparseColumn c: sparseDF) {
-                if(s.equals(c.getName())) {
-                    if (copy) result.sparseDF.add(c.clone());
-                    else result.sparseDF.add(c);
-                    break;
+        if(copy){
+            for (String c : colNames){
+                for (SparseColumn col : sparseDF){
+                    if (col.getName().equals(c)){
+                        SparseColumn addColumn = new SparseColumn(col.getName(), col.getType(), col
+                                .getHidden());
+                        for (int i = 0; i < col.size(); i++){
+                            addColumn.addElement(col.elementAtIndex(i));
+                        }
+                        result.sparseDF.add(addColumn);
+                        break;
+                    }
                 }
             }
+            return result;
         }
-        return result;
+        else {
+            for (String c : colNames){
+                for (SparseColumn col : sparseDF){
+                    if (col.getName().equals(c)){
+                        result.sparseDF.add(col);
+                    }
+                }
+            }
+            return result;
+        }
     }
+
     public DataFrame toDense () {
-        String[] types = getColumnsTypeNames();
+        Class<? extends Value>[] types = getColumnsTypeNames();
         String[] names = getColumnsNames();
         DataFrame result = new DataFrame();
         Object[] lista= new Object[sparseDF.size()];

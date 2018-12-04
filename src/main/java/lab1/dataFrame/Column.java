@@ -101,7 +101,6 @@ public class Column implements Cloneable{
         if (type.isInstance(o1)) lista.set(index,o1);
         else throw new IllegalArgumentException();
     }
-    @Override
     public String toString()
     {
         return "Nazwa kolumny: " + name +
@@ -113,7 +112,6 @@ public class Column implements Cloneable{
      * Zwraca kopię kolumny
      * @return
      */
-    @Override
     public Column clone(){
         Column column = new Column(name,type);
         column.lista = new ArrayList<>(lista);

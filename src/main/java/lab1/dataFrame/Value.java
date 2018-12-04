@@ -16,4 +16,5 @@ public abstract class Value {
     public abstract Value create(String s);
     public abstract Value clone();
     public abstract Object getValue();
+    public abstract boolean getSet();
 }

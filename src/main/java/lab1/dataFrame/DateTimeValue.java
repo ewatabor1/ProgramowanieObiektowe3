@@ -5,9 +5,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-
+@SuppressWarnings( "deprecation" )
 public class DateTimeValue extends Value {
     private Date date;
+    private boolean set;
     public DateTimeValue (){
         this.date=new Date();
     }
@@ -15,8 +16,14 @@ public class DateTimeValue extends Value {
         this.date = date;
     }
 
-    public DateTimeValue (String s) throws ParseException {
-        date =new SimpleDateFormat("yyyy-MM-dd").parse(s);
+    public DateTimeValue (String string) throws ParseException{
+        try {
+            set=true;
+            date =new SimpleDateFormat("yyyy-MM-dd").parse(string);
+        }
+        catch (Exception e){
+            set=false;
+        }
     }
 
     @Override
@@ -125,5 +132,10 @@ public class DateTimeValue extends Value {
     @Override
     public Date getValue() {
         return date;
+    }
+
+    @Override
+    public boolean getSet() {
+        return set;
     }
 }

@@ -2,18 +2,28 @@ package main.java.lab1.dataFrame;
 
 public class DoubleValue extends Value {
     private double value;
+    boolean set;
     public DoubleValue(){
+        set=true;
         value=0;
     }
     public DoubleValue(double value){
+        set=true;
         this.value=value;
     }
-    @Override
+    public DoubleValue(String string) {
+        try{
+            value = Double.valueOf(string);
+            set=true;
+        }
+        catch (Exception e){
+            set=false;
+        }
+    }
     public String toString() {
         return String.valueOf(value);
     }
 
-    @Override
     public DoubleValue add(Value o1) {
         if (o1 instanceof DoubleValue){
             return new DoubleValue(value+(Double) o1.getValue());
@@ -22,7 +32,6 @@ public class DoubleValue extends Value {
     }
 
 
-    @Override
     public DoubleValue sub(Value o1) {
         if (o1 instanceof DoubleValue){
             return new DoubleValue(value-(Double) o1.getValue());
@@ -30,7 +39,6 @@ public class DoubleValue extends Value {
         throw new IllegalArgumentException();
     }
 
-    @Override
     public DoubleValue mul(Value o1) {
         if (o1 instanceof DoubleValue){
             return new DoubleValue(value*(Double) o1.getValue());
@@ -38,7 +46,6 @@ public class DoubleValue extends Value {
         throw new IllegalArgumentException();
     }
 
-    @Override
     public DoubleValue div(Value o1) {
         if (o1 instanceof DoubleValue || o1 instanceof IntegerValue){
             double temp;
@@ -52,7 +59,6 @@ public class DoubleValue extends Value {
         throw new IllegalArgumentException();
     }
 
-    @Override
     public DoubleValue pow(Value o1) {
         if (o1 instanceof DoubleValue) {
             return new DoubleValue(Math.pow(this.value, (double) o1.getValue()));
@@ -60,14 +66,12 @@ public class DoubleValue extends Value {
         throw new IllegalArgumentException();
     }
 
-    @Override
     public boolean eq(Value o1) {
         if (o1 instanceof DoubleValue) {
             return value==(Double) o1.getValue();
         }
         return false;
     }
-    @Override
     public boolean lte(Value o1) {
         if (o1 instanceof DoubleValue) {
             return value<(Double) o1.getValue();
@@ -75,7 +79,6 @@ public class DoubleValue extends Value {
         return false;
     }
 
-    @Override
     public boolean gte(Value o1) {
         if (o1 instanceof DoubleValue) {
             return value>(Double) o1.getValue();
@@ -83,7 +86,6 @@ public class DoubleValue extends Value {
         return false;
     }
 
-    @Override
     public boolean neq(Value o1) {
         if (o1 instanceof DoubleValue) {
             return value!=(Double) o1.getValue();
@@ -91,7 +93,6 @@ public class DoubleValue extends Value {
         return false;
     }
 
-    @Override
     public boolean equals(Object other) {
         if (this==other) return true;
         if (other==null || other.getClass()!=this.getClass()) return false;
@@ -99,24 +100,25 @@ public class DoubleValue extends Value {
         return value==(double) check.getValue();
     }
 
-    @Override
     public int hashCode() {
         int result = (int) value;
         return  result;
     }
 
-    @Override
     public Value create(String s) {
         return new DoubleValue(Double.parseDouble(s));
     }
 
-    @Override
     public Value clone() {
         return new DoubleValue(value);
     }
 
-    @Override
     public Double getValue() {
         return value;
+    }
+
+    @Override
+    public boolean getSet() {
+        return set;
     }
 }

@@ -1,41 +1,44 @@
 package main.java.lab1.dataFrame;
 
 
-import main.java.lab1.myExceptions.DifferentSizedColumns;
+import main.java.lab1.dataFrameDB.DataFrameDB;
 import main.java.lab1.myExceptions.WrongTypeInColumn;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-
 public class DataFrameProgram {
-    public static void main(String[] args) throws IOException, InvocationTargetException,
-            NoSuchMethodException, InstantiationException, IllegalAccessException, DifferentSizedColumns,WrongTypeInColumn {
-        DataFrame dataFrame = new DataFrame("groupby.csv",
-                new Class[]{StringValue.class, DateTimeValue.class, FloatValue.class, FloatValue.class},true);
-        //System.out.println(dataFrame.iloc(0,10));000
-        dataFrame.get(2).mulByValueC(dataFrame.get(2));
-        System.out.println(dataFrame.iloc(0,5));
+    public static void main(String[] args) {
+        /*DataFrameDB dataFDB = new DataFrameDB("mysql.agh.edu.pl/agatatab",
+                "agatatab", "DMQZxAQGWaQJvHWk");
         try{
-            dataFrame.get(2).mulByValueC(dataFrame.iloc(0,5).get(2));
+            DataFrame dataF = dataFDB.getDataFrameFromQuery(
+                    "SELECT count(*) FROM books WHERE author LIKE '%Hemingway%'");
+            System.out.println(dataF);
+            System.out.println(dataFDB.getDataFrame("books"));
+            System.out.println(dataF.get(0).getType().toString());
         }
-        catch (DifferentSizedColumns e){
-            e.printMessage();
-        }
-        Column column = new Column(dataFrame.get(2));
-        column.switchElementWC(5,new StringValue("dnacnsadkcndskfndsk"));
-        dataFrame.switchColumn(2,column);
-
-
-        //dataFrame.mulValueInColumn(2,new FloatValue((float) 10.5));
-        //System.out.println(dataFrame.iloc(0,10));
+        catch (Exception e){
+            e.printStackTrace();;
+        }*/
+        Class<? extends Value>[] types = new Class[4];
+        types[0] = StringValue.class;
+        types[1] =DateTimeValue.class;
+        types[2] = FloatValue.class;
+        types[3]=FloatValue.class;
+        String[] names=new String[4];
+        names[0]="lalal";
+        names[1]="FKS";
+        names[2]="FKOE";
+        names[3]="FFFFFEEEEEE";
         try{
-            System.out.println("\nGroupby: ");
-            System.out.println(dataFrame.groupBy("id").max());
-            //dataFrame.get(2).mulByValueC(column);
+            DataFrame dataFrame = new DataFrame("groupby.csv",types,names);
+            /*DataFrameDB dataFrameDB = new DataFrameDB("mysql.agh.edu.pl/agatatab",
+                    "agatatab", "DMQZxAQGWaQJvHWk");*/
+            DataFrame dataFrameDB2 = new DataFrameDB(dataFrame,"laa2","mysql.agh.edu.pl/agatatab",
+                    "agatatab", "DMQZxAQGWaQJvHWk");
+            System.out.println(dataFrameDB2);
+
         }
-        catch (WrongTypeInColumn e){
-            e.printMessage();
+        catch (Exception e){
+            e.printStackTrace();
         }
-        //System.out.println(dataFrame.groupBy("id").min());
     }
 }

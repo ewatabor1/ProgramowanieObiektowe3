@@ -1,11 +1,15 @@
 package main.java.lab1.dataFrame;
 
+
 public class FloatValue extends Value {
     private float value;
+    private boolean set;
     public FloatValue(){
+        set=true;
         value=0;
     }
     public FloatValue(float value){
+        set=true;
         this.value=value;
     }
     public FloatValue(FloatValue o1){
@@ -16,7 +20,14 @@ public class FloatValue extends Value {
         return String.valueOf(value);
     }
     public FloatValue(String string) {
-        value = Float.valueOf(string);
+        try{
+            value = Float.valueOf(string);
+            set=true;
+        }
+        catch (Exception e) {
+            System.out.println("OOOOO");
+            set=false;
+        }
     }
 
     @Override
@@ -131,5 +142,10 @@ public class FloatValue extends Value {
     @Override
     public Float getValue() {
         return value;
+    }
+
+    @Override
+    public boolean getSet() {
+        return set;
     }
 }

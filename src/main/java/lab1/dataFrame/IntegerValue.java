@@ -1,12 +1,27 @@
 package main.java.lab1.dataFrame;
 
+import main.java.lab1.myExceptions.WrongTypeInColumn;
+
+
 public class IntegerValue extends Value{
     protected int value;
+    protected boolean set;
     public IntegerValue(){
+        set=true;
         this.value=0;
     }
     public IntegerValue(int value){
+        set=true;
         this.value=value;
+    }
+    public IntegerValue (String string) throws WrongTypeInColumn{
+        try {
+            set=true;
+            value = Integer.valueOf(string);
+        }
+        catch (Exception e){
+            set=false;
+        }
     }
     @Override
     public String toString() {
@@ -118,6 +133,11 @@ public class IntegerValue extends Value{
     @Override
     public Integer getValue() {
         return value;
+    }
+
+    @Override
+    public boolean getSet() {
+        return set;
     }
 
 

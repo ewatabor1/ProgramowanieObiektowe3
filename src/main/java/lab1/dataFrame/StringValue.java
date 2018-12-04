@@ -2,11 +2,14 @@ package main.java.lab1.dataFrame;
 
 public class StringValue extends Value {
     private String value;
+    private boolean set;
     public StringValue (){
+        set=true;
         value="";
     }
-    public StringValue (String value){
-        this.value=value;
+    public StringValue (String string){
+        set=true;
+        this.value=string;
     }
     @Override
     public String toString() {
@@ -28,7 +31,7 @@ public class StringValue extends Value {
         if(o1 instanceof IntegerValue) {
             StringBuilder stringBuilder = new StringBuilder();
             for (int i = 0; i < (int)o1.getValue(); i++) {
-               stringBuilder.append(this.value);
+                stringBuilder.append(this.value);
             }
             return new StringValue(stringBuilder.toString());
         }
@@ -95,5 +98,10 @@ public class StringValue extends Value {
     @Override
     public String getValue() {
         return value;
+    }
+
+    @Override
+    public boolean getSet() {
+        return set;
     }
 }

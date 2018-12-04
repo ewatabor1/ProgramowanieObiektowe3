@@ -6,15 +6,11 @@ import main.java.lab1.groupBy.Operation;
 import main.java.lab1.myExceptions.DifferentSizedColumns;
 import main.java.lab1.myExceptions.WrongTypeInColumn;
 
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static main.java.lab1.groupBy.Operation.*;
 
@@ -61,18 +57,62 @@ public class DataFrame{
      Konstruktor tworzący DataFrame czytający dane z pliku csv
      * @param address -adres pliku csv
      * @param types - typy danych w poszczególnych kolumnach
-     * @param header - jeśli header==true znaczy to, że w pierwszej linijce pliku
      *      podane są nazwy kolumn
      *      jeśli header==false nazwy kolumn pobierane są na wejściu
      * @throws IOException
      */
-    public DataFrame(String address, Class<? extends Value>[] types, boolean header)
-            throws IOException, NoSuchMethodException, IllegalAccessException,
+    public DataFrame(String address, Class<? extends Value>[] types)
+            throws  NoSuchMethodException, IllegalAccessException, IOException,
             InvocationTargetException, InstantiationException, WrongTypeInColumn {
-
-        dataF = new ArrayList<>();
         FileInputStream fstream;
-        BufferedReader br;
+        BufferedReader br=null;
+        dataF = new ArrayList<>();
+
+            fstream = new FileInputStream(address);
+            if (fstream == null)
+                throw new IOException("File not found!");
+            else
+                br = new BufferedReader(new InputStreamReader(fstream));
+            String strLine = br.readLine();
+            String[] separated = strLine.split(",");
+            String[] names = new String[types.length];
+            for (int m = 0; m < types.length; m++) {
+                    names[m] = separated[m];
+            }
+
+            for (int i = 0; i < types.length; i++) {
+                if ((separated.length <= i)) {
+                    break;
+                }
+                dataF.add(new Column(names[i], types[i]));
+            }
+            Value[] values = new Value[dataF.size()];
+            List<Constructor<? extends Value>> constructors = new ArrayList<>(types.length);
+            for (int i = 0; i < types.length; i++) {
+                constructors.add(types[i].getConstructor(String.class));
+            }
+            int ind=0;
+            while ((strLine = br.readLine()) != null){
+            //for (int b = 0; b < 50; b++) {
+              //  strLine = br.readLine();
+                String[] str = strLine.split(",");
+                for (int i = 0; i < str.length; i++) {
+                    values[i] = constructors.get(i).newInstance(str[i]);
+                    if (!values[i].getSet())
+                        throw new WrongTypeInColumn(names[i],ind);
+                    ind++;
+                }
+                addRow(values);
+            }
+            br.close();
+    }
+
+    public DataFrame(String address, Class<? extends Value>[] types, String[] names)
+            throws  NoSuchMethodException, IllegalAccessException, IOException,
+            InvocationTargetException, InstantiationException, WrongTypeInColumn {
+        FileInputStream fstream;
+        BufferedReader br=null;
+        dataF = new ArrayList<>();
 
         fstream = new FileInputStream(address);
 
@@ -81,46 +121,34 @@ public class DataFrame{
         else
             br = new BufferedReader(new InputStreamReader(fstream));
 
-        String strLine=br.readLine();
-        String[] separated=strLine.split(",");
-        String[] names= new String[types.length];
-        if (!header){
-            Scanner odczyt = new Scanner(System.in);
-            for (int l=0;l<types.length;l++){
-                System.out.print("Podaj nazwę kolumny: ");
-                names[l] = odczyt.nextLine();
-            }
-        }
-        if (header){
-            for (int m=0;m<types.length;m++){
-                names[m]=separated[m];
-            }
-        }
+        String strLine = br.readLine();
+        String[] separated = strLine.split(",");
+
         for (int i = 0; i < types.length; i++) {
-            if((separated.length <= i)) {
+            if ((separated.length <= i)) {
                 break;
             }
             dataF.add(new Column(names[i], types[i]));
         }
-        Value[] values= new Value[dataF.size()];
+        Value[] values = new Value[dataF.size()];
         List<Constructor<? extends Value>> constructors = new ArrayList<>(types.length);
-        for (int i=0;i<types.length;i++){
+        for (int i = 0; i < types.length; i++) {
             constructors.add(types[i].getConstructor(String.class));
         }
 
-        //while ((strLine = br.readLine()) != null){
-        for (int b=0; b<50;b++) {
-            strLine = br.readLine();
+        while ((strLine = br.readLine()) != null){
+        //for (int b = 0; b < 50; b++) {
+            //strLine = br.readLine();
             String[] str = strLine.split(",");
-            for (int i = 0; i<str.length; i++){
+            for (int i = 0; i < str.length; i++) {
                 values[i] = constructors.get(i).newInstance(str[i]);
             }
             addRow(values);
-
         }
         br.close();
 
     }
+
 
     /**
      * Sorawdza czy istnieje kolumna o danej nazwie
@@ -184,7 +212,6 @@ public class DataFrame{
      */
     public int width(){ return dataF.size();}
 
-    @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
         for (var s: dataF) {
@@ -271,7 +298,7 @@ public class DataFrame{
      * @param to - indeks wiersza na którym kończymy
      * @return nowy DataFrame zawierający wybrane wiersze
      */
-    public DataFrame iloc(int from, int to) throws WrongTypeInColumn{
+    public DataFrame iloc(int from, int to) throws WrongTypeInColumn {
         DataFrame result = new DataFrame();
         if (from<0) from=0;
         if (to>=this.size()) to=this.size()-1;
@@ -298,7 +325,10 @@ public class DataFrame{
 
     public boolean addRow(Value...values) throws WrongTypeInColumn {
         if(dataF.size()!=values.length){
-            System.out.print("Nie podano wszystkich argumentów!");
+            System.out.println("Nie podano wszystkich argumentów!");
+            for (int i=0;i<values.length;i++){
+                System.out.println(i+"."+values[i].toString() + " ");
+            }
             return false;
         }
         for (int i=0;i<values.length;i++){
@@ -377,37 +407,30 @@ public class DataFrame{
             return dataFrame;
         }
 
-        @Override
         public DataFrame max() throws WrongTypeInColumn {
             return operation(Operation.MAX, false);
         }
 
-        @Override
         public DataFrame min() throws WrongTypeInColumn {
             return operation(Operation.MIN,false);
         }
 
-        @Override
         public DataFrame mean() throws WrongTypeInColumn {
             return operation(Operation.MEAN,true);
         }
 
-        @Override
         public DataFrame std()throws WrongTypeInColumn {
             return operation(Operation.STD,true);
         }
 
-        @Override
         public DataFrame sum()throws WrongTypeInColumn {
             return operation(Operation.SUM,true);
         }
 
-        @Override
         public DataFrame var()throws WrongTypeInColumn {
             return operation(Operation.VAR,true);
         }
 
-        @Override
         public DataFrame apply(Applyable applyable) {
             return applyable.apply(DataFrame.this);
         }
@@ -419,7 +442,10 @@ public class DataFrame{
         for (int i = 0; i < size(); i++) {
             List<Value> values = new ArrayList<>(dataF.size());
             for (var column: dataF) {
-                values.add(column.elementAtIndex(i));
+                if (column!=null){
+                    values.add(column.elementAtIndex(i));
+                }
+
             }
 
             if(!map.containsKey(values)) {
@@ -430,6 +456,4 @@ public class DataFrame{
         }
         return new DataFrameGroupBy(map,colname);
     }
-
-    }
-
+}

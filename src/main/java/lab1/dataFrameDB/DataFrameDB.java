@@ -306,19 +306,31 @@ public class DataFrameDB extends DataFrame {
         String query = "DROP TABLE "+name+";";
         stmt.executeUpdate(query);
     }
-    public void getMin (String name) throws SQLException{
+
+    public String getOp (String name,String op) throws SQLException{
         String result="";
         String[] colNames = getNameListFromDB(name);
         String query="SELECT ";
         stmt = conn.createStatement();
-        
+
         for (int i=0;i<colNames.length;i++){
-            query+="MIN("+colNames[i]+")";
+            query+=op+"("+colNames[i]+")";
             if (i!=colNames.length-1) query+=", ";
         }
         query+=" FROM "+name+";";
         System.out.println(query);
         rs = stmt.executeQuery(query);
+        rs.next();
+        for (int j=0;j<colNames.length;j++){
+            result+="Min dla kolumny \""+colNames[j]+"\": "+rs.getString(j+1)+"\n";
+        }
+        return result;
+    }
+    public String getMin (String name) throws SQLException{
+        return getOp(name,"MIN");
+    }
+    public String getMax (String name) throws SQLException{
+        return getOp(name,"MAX");
     }
     public String[] groupby (String name, String...strings){
         String[] result = null;

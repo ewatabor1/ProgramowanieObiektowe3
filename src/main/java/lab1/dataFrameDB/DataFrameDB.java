@@ -23,26 +23,22 @@ public class DataFrameDB extends DataFrame {
         this.password=password;
         connect();
     }
-    public DataFrameDB (DataFrame dataFrame, String name, String address, String user, String password) throws SQLException{
+    public DataFrameDB (DataFrame dataFrame, String name, String address, String user, String password,boolean drop) throws SQLException{
         this.address=address;
         this.user=user;
         this.password=password;
         connect();
-        DatabaseMetaData dbm = conn.getMetaData();
-        ResultSet rs = dbm.getTables(null, null, name, null);
-        if (!rs.next()) {
-            String[] types = new String[dataFrame.width()];
-            String type;
-            for (int i = 0; i < dataFrame.width(); i++) {
-                type = dataFrame.get(i).getType().toString();
-                if (type.contains("Integer")) types[i] = "INT";
-                else if (type.contains("Float")) types[i] = "FLOAT";
-                else if (type.contains("Double")) types[i] = "DOUBLE";
-                else if (type.contains("Date")) types[i] = "DATE";
-                else types[i] = "TEXT";
-            }
-            createTable(name, dataFrame.getColumnsNames(), types);
+        String[] types = new String[dataFrame.width()];
+        String type;
+        for (int i = 0; i < dataFrame.width(); i++) {
+            type = dataFrame.get(i).getType().toString();
+            if (type.contains("Integer")) types[i] = "INT";
+            else if (type.contains("Float")) types[i] = "FLOAT";
+            else if (type.contains("Double")) types[i] = "DOUBLE";
+            else if (type.contains("Date")) types[i] = "DATE";
+            else types[i] = "TEXT";
         }
+        createTable(name, dataFrame.getColumnsNames(), types,drop);
         String[] values= new String[dataFrame.width()];
         String query = "SELECT * FROM "+name+";";
         rs = stmt.executeQuery(query);
@@ -62,15 +58,27 @@ public class DataFrameDB extends DataFrame {
             temp+=1000;
             if (temp>=dataFrame.size()) temp=dataFrame.size();
             query+=";";
-            System.out.println(j);
+            //System.out.println(j+" "+query);
+            if(query.equals("INSERT INTO "+name+" VALUES ;")) break;
             stmt.executeUpdate(query);
         }
 
     }
-    public void createTable (String name, String[] colNames, String[] types) throws SQLException{
+    public boolean checkIfTableExists(String name) throws SQLException{
+        DatabaseMetaData dbm = conn.getMetaData();
+        ResultSet rs = dbm.getTables(null, null, name, null);
+        if (!rs.next()) return false;
+        return true;
+    }
+    public void createTable (String name, String[] colNames, String[] types,boolean drop) throws SQLException{
         connect();
         stmt = conn.createStatement();
-        String query = "CREATE TABLE "+name+ "(";
+        String query;
+        if (drop && checkIfTableExists(name)) {
+            query="DROP TABLE "+name+";";
+            stmt.executeUpdate(query);
+        }
+        query = "CREATE TABLE "+name+ "(";
         for (int i=0;i<colNames.length;i++){
             query = query + colNames[i] + " " + types[i];
             if (i!=colNames.length-1) query = query + ", ";
@@ -162,9 +170,8 @@ public class DataFrameDB extends DataFrame {
     }
     public DataFrame getDataFrameFromQuery (String query) throws SQLException, IllegalAccessException, InvocationTargetException,
             NoSuchMethodException, WrongTypeInColumn, InstantiationException{
-        //connect();
+
         stmt = conn.createStatement();
-        //String query = "SELECT * FROM "+name;
         rs = stmt.executeQuery(query);
         ResultSetMetaData rsmd = rs.getMetaData();
         int width = rsmd.getColumnCount();
@@ -200,6 +207,79 @@ public class DataFrameDB extends DataFrame {
         }
         return result;
     }
+    static public DataFrame getDataFrameFromQueryStatic (String address, String user, String password,String query) throws SQLException, IllegalAccessException, InvocationTargetException,
+            NoSuchMethodException, WrongTypeInColumn, InstantiationException{
+        Connection conn=null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            Class.forName("com.mysql.jdbc.Driver").newInstance();
+            conn =
+                    DriverManager.getConnection("jdbc:mysql://"+address,
+                            user,password);
+            //mysql.agh.edu.pl/agatatab",
+            //"agatatab", "DMQZxAQGWaQJvHWk");
+            //System.out.println(conn);
+            stmt = conn.createStatement();
+
+        } catch (SQLException ex) {
+            // handle any errors
+            System.out.println("SQLException: " + ex.getMessage());
+            System.out.println("SQLState: " + ex.getSQLState());
+            System.out.println("VendorError: " + ex.getErrorCode());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        stmt = conn.createStatement();
+        //tring query = "SELECT * FROM "+name;
+        rs = stmt.executeQuery(query);
+        ResultSetMetaData rsmd = rs.getMetaData();
+        int width = rsmd.getColumnCount();
+        String [] names = new String[width];
+        for (int i=0;i<width;i++){
+            names[i] =rsmd.getColumnName(i+1);
+        }
+        Class<? extends Value>[] types = new Class[width];
+        for (int j=0;j<width;j++){
+            String type = rsmd.getColumnTypeName(j+1);
+            if (type.contains("INT")) types[j] = IntegerValue.class;
+            else if(type.contains("FLOAT")) types[j]= FloatValue.class;
+            else if(type.contains("DOUBLE") || type.contains("DECIMAL")) types[j]= DoubleValue.class;
+            else if (type.contains("DATE") || type.contains("TIME") ||
+                    type.contains("YEAR")) types[j]=DateTimeValue.class;
+            else types[j]=StringValue.class;
+        }
+        DataFrame result=new DataFrame(names,types);
+        Value[] values = new Value[width];
+        List<Constructor<? extends Value>> constructors = new ArrayList<>(types.length);
+        for (int i = 0; i < types.length; i++) {
+            constructors.add(types[i].getConstructor(String.class));
+        }
+        int ind=0;
+        while (rs.next()){
+            for (int j = 0; j < width; j++) {
+                values[j] = constructors.get(j).newInstance(rs.getString(j+1));
+                if (!values[j].getSet())
+                    throw new WrongTypeInColumn(names[j],ind);
+                ind++;
+            }
+            for (int i=0;i<values.length;i++){
+                if(!result.get(i).checkElement(values[i])) {
+                    int a=result.get(0).size();
+                    if(i==0){
+                        a=-1;
+                        if(a<0) a=0;
+                    }
+                    throw new WrongTypeInColumn(names[i],a);
+                }
+            }
+            for (int j=0;j<values.length;j++){
+                result.get(j).addElement(values[j]);
+            }
+        }
+        return result;
+    }
 
     public DataFrame addRowToDF(int width,DataFrame result,Value...values) throws WrongTypeInColumn {
         if(width!=values.length){
@@ -226,14 +306,25 @@ public class DataFrameDB extends DataFrame {
         String query = "DROP TABLE "+name+";";
         stmt.executeUpdate(query);
     }
-    public DataFrame getMin(String name) throws SQLException{
+    public void getMin (String name) throws SQLException{
+        String result="";
+        String[] colNames = getNameListFromDB(name);
+        String query="SELECT ";
         stmt = conn.createStatement();
-        String[] names = getNameListFromDB(name);
-        Class<?extends Value>[] types =getTypesFromDB(name);
-        DataFrame dataFrame = new DataFrame(names,types);
-        Value[] values = new Value[names.length];
-        List<Constructor<? extends Value>> constructors = new ArrayList<>(types.length);
+        
+        for (int i=0;i<colNames.length;i++){
+            query+="MIN("+colNames[i]+")";
+            if (i!=colNames.length-1) query+=", ";
+        }
+        query+=" FROM "+name+";";
+        System.out.println(query);
+        rs = stmt.executeQuery(query);
+    }
+    public String[] groupby (String name, String...strings){
+        String[] result = null;
 
-        return dataFrame;
+
+
+        return result;
     }
 }
